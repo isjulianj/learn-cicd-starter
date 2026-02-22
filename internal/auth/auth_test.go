@@ -14,7 +14,7 @@ func TestAuth(t *testing.T) {
 		expect    string
 		expectErr string
 	}{
-		"Valid Key":        {key: "Authorization", value: "ApiKe 12345", expect: "12345"},
+		"Valid Key":        {key: "Authorization", value: "ApiKey 12345", expect: "12345"},
 		"malformed":        {key: "Authorization", value: "-", expectErr: "malformed authorization header"},
 		"malformed bearer": {key: "Authorization", value: "Bearer xxxxxxx", expectErr: "malformed authorization header"},
 		"no header":        {expectErr: "no authorization header included"},
