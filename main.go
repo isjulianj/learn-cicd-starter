@@ -7,6 +7,8 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"strings"
+	"time"
 
 	"github.com/go-chi/chi"
 	"github.com/go-chi/cors"
@@ -18,7 +20,8 @@ import (
 )
 
 type apiConfig struct {
-	DB *database.Queries
+	addr string
+	DB   *database.Queries
 }
 
 //go:embed static/*
@@ -35,8 +38,11 @@ func main() {
 		log.Fatal("PORT environment variable is not set")
 	}
 
-	apiCfg := apiConfig{}
+	safePort := strings.ReplaceAll(port, "\n", "")
+	safePort = strings.ReplaceAll(safePort, "\r", "")
 
+	apiCfg := apiConfig{}
+	apiCfg.addr = ":" + safePort
 	// https://github.com/libsql/libsql-client-go/#open-a-connection-to-sqld
 	// libsql://[your-database].turso.io?authToken=[your-auth-token]
 	dbURL := os.Getenv("DATABASE_URL")
@@ -89,10 +95,11 @@ func main() {
 
 	router.Mount("/v1", v1Router)
 	srv := &http.Server{
-		Addr:    ":" + port,
-		Handler: router,
+		Addr:              apiCfg.addr,
+		Handler:           router,
+		ReadHeaderTimeout: 3 * time.Second,
 	}
 
-	log.Printf("Serving on port: %s\n", port)
+	log.Printf("Serving on port: %s\n", apiCfg.addr)
 	log.Fatal(srv.ListenAndServe())
 }
